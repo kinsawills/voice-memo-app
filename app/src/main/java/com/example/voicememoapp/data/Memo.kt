@@ -1,11 +1,12 @@
 package com.example.voicememoapp.data
 
-import androidx.annotation.StringRes
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
+@Entity(tableName = "memo")
 data class Memo(
-    val id: Long,
-    val folder: Folder?,
-    @StringRes val content: Int = -1,
-    @StringRes val transcription: Int = -1,
-    @StringRes val createdAt: Int = -1
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val folderId: Int,
+    val content: Int,
+    val transcription: String = "",
 )

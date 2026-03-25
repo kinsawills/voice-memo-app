@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.voicememoapp.ui.navigation.AppNavHost
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -12,10 +13,9 @@ import com.google.accompanist.permissions.rememberPermissionState
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MemoApp(
-    modifier: Modifier = Modifier,
-) {
+fun MemoApp() {
     val navController = rememberNavController()
+    val viewModel: MemoViewModel = hiltViewModel()
 
     val context = LocalContext.current
     val microphonePermissionsState = rememberPermissionState(
@@ -23,7 +23,7 @@ fun MemoApp(
     )
 
     if(microphonePermissionsState.status.isGranted) {
-        AppNavHost(navController = navController)
+        AppNavHost(navController = navController, viewModel = viewModel)
     }
     else {
         LaunchedEffect(Unit) {

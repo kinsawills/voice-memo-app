@@ -6,10 +6,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.voicememoapp.ui.MemoHomeScreen
 import com.example.voicememoapp.ui.MemoUiState
+import com.example.voicememoapp.ui.MemoViewModel
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    viewModel: MemoViewModel,
     startDestination: String = "home"
 ){
     NavHost(
@@ -19,8 +21,8 @@ fun AppNavHost(
 
         composable("home") {
             MemoHomeScreen(
-                uiState = MemoUiState(),
-                onFolderCardPressed = {"todo"}
+                uiState = MemoUiState(viewModel.folders, viewModel.memos),
+                viewModel = viewModel
             )
         }
     }
