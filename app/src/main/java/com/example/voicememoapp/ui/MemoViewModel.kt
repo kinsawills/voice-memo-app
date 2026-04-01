@@ -30,16 +30,7 @@ class MemoViewModel @Inject constructor(
 
 
     init {
-        initializeUIState()
-    }
-
-    private fun initializeUIState() {
-        _uiState.value =
-            MemoUiState(
-                folders = folders,
-                memos = memos,
-                currentSelectedFolder = null
-            )
+        allFoldersFromDB()
     }
 
     fun updateCurrentFolderState(folder: Folder) {
@@ -52,23 +43,11 @@ class MemoViewModel @Inject constructor(
     }
 
     fun updateFolderByName(folderName: String, folderNames: List<String?>) {
-        val folders: MutableList<Folder> = mutableListOf<Folder>()
-
-        val folderNameToFolderMap: MutableMap<String, Folder> = mutableMapOf()
-        folders.mapIndexed { index, folder ->
-            val indexFolder = folderNames[index]
-            if (indexFolder != null) {
-                folderNameToFolderMap[indexFolder] = folder
-            }
-        }
-
-        val searchFolder = folderNames.find{folder -> folder == folderName}
-
-        if (searchFolder != null) {
-            val updateFolder = folderNameToFolderMap[searchFolder]
+        val matchedFolder = _folders.value.find { it.name == folderName }
+        if (matchedFolder != null) {
             _uiState.update {
                 it.copy(
-                    currentSelectedFolder = updateFolder,
+                    currentSelectedFolder = matchedFolder,
                     isShowingHomepage = false
                 )
             }
@@ -87,12 +66,15 @@ class MemoViewModel @Inject constructor(
     fun allFoldersFromDB() {
         viewModelScope.launch {
             _folders.value = folderDao.getAllFolders()
+            _uiState.update { it.copy(folders = _folders.value) }
         }
     }
 
     fun addFolderToDB(name: String) {
         viewModelScope.launch {
             folderDao.insert(Folder(name=name))
+            _folders.value = folderDao.getAllFolders()
+            _uiState.update { it.copy(folders = _folders.value) }
         }
     }
 }

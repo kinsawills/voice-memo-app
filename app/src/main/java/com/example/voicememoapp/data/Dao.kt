@@ -7,7 +7,7 @@ import androidx.room.OnConflictStrategy
 
 @Dao
 interface FolderDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(folder: Folder)
 
     @Query("SELECT * FROM folder")

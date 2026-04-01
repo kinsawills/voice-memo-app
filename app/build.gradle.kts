@@ -7,9 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.voicememoapp"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.voicememoapp"
@@ -43,7 +41,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-
+    implementation("androidx.compose.material:material-icons-extended:1.0")
     implementation(libs.accompanist.permissions)
     implementation(libs.generativeai)
     implementation(libs.androidx.core.ktx)

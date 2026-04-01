@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "memo")
 data class Memo(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val name: String,
     val folderId: Int,
     val content: Int,
     val transcription: String = "",

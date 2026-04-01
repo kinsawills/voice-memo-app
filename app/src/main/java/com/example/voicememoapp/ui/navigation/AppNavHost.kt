@@ -1,11 +1,12 @@
 package com.example.voicememoapp.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.voicememoapp.ui.MemoHomeScreen
-import com.example.voicememoapp.ui.MemoUiState
 import com.example.voicememoapp.ui.MemoViewModel
 
 @Composable
@@ -20,8 +21,9 @@ fun AppNavHost(
     ){
 
         composable("home") {
+            val uiState by viewModel.uiState.collectAsState()
             MemoHomeScreen(
-                uiState = MemoUiState(viewModel.folders, viewModel.memos),
+                uiState = uiState,
                 viewModel = viewModel
             )
         }

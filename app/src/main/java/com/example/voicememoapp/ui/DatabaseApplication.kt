@@ -23,7 +23,7 @@ object DataBaseModule {
             context,
             AppDatabase::class.java,
             "voiceMemo.db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Singleton
