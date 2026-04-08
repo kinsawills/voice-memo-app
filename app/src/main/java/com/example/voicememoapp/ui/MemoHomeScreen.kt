@@ -3,6 +3,7 @@ package com.example.voicememoapp.ui
 import SimpleSearchBar
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,6 +29,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
+import com.example.voicememoapp.ui.components.AddFolder
 
 /** The main page that has the list of folders **/
 
@@ -41,9 +44,11 @@ fun MemoHomeScreen(
     val folderNames = folders.map{folder -> folder.name}
     var searchQuery by rememberSaveable { mutableStateOf("") }
     val filteredFolderNames = if (searchQuery.isBlank()) emptyList() else folderNames.filter { it.contains(searchQuery, ignoreCase = true) }
-  if(uiState.isShowingHomepage) {
+    var folderDialogOpen by rememberSaveable { mutableStateOf(false)}
+    if(uiState.isShowingHomepage) {
       Column(
-          modifier = Modifier.fillMaxSize()
+          modifier = Modifier.fillMaxSize(),
+          horizontalAlignment = Alignment.CenterHorizontally
       ) {
           SimpleSearchBar(
               query = searchQuery,
@@ -61,19 +66,13 @@ fun MemoHomeScreen(
               searchResults = filteredFolderNames,
               placeholder = { Text("Search Folders") }
           )
-          Button(
-              onClick = { viewModel.addFolderToDB("another") },
-              modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(16.dp)
-          ) {
-              Text("Add Folder")
-          }
+          AddFolder(open = folderDialogOpen, setOpen = { folderDialogOpen = it }, viewModel)
+
           LazyVerticalGrid(
               columns = GridCells.Fixed(2),
               modifier = Modifier
                   .fillMaxWidth()
-                  .padding(16.dp)
+                  .padding(horizontal = 16.dp)
                   .weight(1f)
           ) {
               items(folders) { folder ->
@@ -108,7 +107,7 @@ fun FolderCard(folder: Folder?, modifier: Modifier = Modifier, viewModel : MemoV
                     contentDescription = "Folder",
                     tint = Color.Gray
                 )
-                Text(folder.name)
+                Text(folder.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
     }

@@ -41,12 +41,12 @@ fun SimpleSearchBar(
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     Box(
-        modifier
-            .fillMaxWidth()
+        modifier.fillMaxWidth()
             .semantics { isTraversalGroup = true }
     ) {
         SearchBar(
             modifier = Modifier
+                .fillMaxWidth()
                 .align(Alignment.TopCenter)
                 .semantics { traversalIndex = 0f },
             inputField = {
