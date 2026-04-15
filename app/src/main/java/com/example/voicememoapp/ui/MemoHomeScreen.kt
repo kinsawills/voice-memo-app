@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.voicememoapp.ui.components.AddFolder
+import com.example.voicememoapp.ui.components.PlaybackMemo
 
 /** The main page that has the list of folders **/
 
@@ -40,6 +41,7 @@ fun MemoHomeScreen(
     viewModel: MemoViewModel,
     modifier: Modifier = Modifier
 ) {
+    val memos = uiState.currentFolderMemos
     val folders = uiState.folders
     val folderNames = folders.map{folder -> folder.name}
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -78,8 +80,11 @@ fun MemoHomeScreen(
               items(folders) { folder ->
                   FolderCard(folder, viewModel = viewModel)
               }
+              items(memos) { memo ->
+                  PlaybackMemo(memo = memo)
+              }
           }
-          RecordMemoButton(modifier)
+          RecordMemoButton(modifier, viewModel)
 
 
       }

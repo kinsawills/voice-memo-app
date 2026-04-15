@@ -23,11 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.voicememoapp.ui.MemoViewModel
+import java.util.UUID
 
 /** The button for recording memos **/
 
 @Composable
-fun RecordMemoButton(modifier: Modifier) {
+fun RecordMemoButton(modifier: Modifier, viewModel: MemoViewModel) {
     var isRecording by remember { mutableStateOf(false) }
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     val context = LocalContext.current
@@ -58,6 +60,12 @@ fun RecordMemoButton(modifier: Modifier) {
                     release()
                 }
                 mediaRecorder = null
+
+                viewModel.addMemoToDB(
+                    name = UUID.randomUUID().toString().take(6),
+                    folderId = viewModel.uiState.value.currentSelectedFolder?.id ?: -1,
+                    filePath = outputFile
+                )
 
                 Log.d("RecordMemo", "Saved to: $outputFile")
             }

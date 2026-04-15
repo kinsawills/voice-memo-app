@@ -31,6 +31,7 @@ class MemoViewModel @Inject constructor(
 
     init {
         allFoldersFromDB()
+        allMemosFromDB()
     }
 
     fun updateCurrentFolderState(folder: Folder) {
@@ -76,5 +77,32 @@ class MemoViewModel @Inject constructor(
             _folders.value = folderDao.getAllFolders()
             _uiState.update { it.copy(folders = _folders.value) }
         }
+    }
+
+    fun allMemosFromDB() {
+        viewModelScope.launch {
+            _memos.value = memoDao.getAllMemos()
+            _uiState.update { it.copy(memos = _memos.value) }
+        }
+    }
+
+    fun generateTranscript(content: Int) {
+
+    }
+
+    fun addMemoToDB(name: String, folderId: Int, filePath: String) {
+        // Generate the transcript here and save the memo to the database with it attached
+        viewModelScope.launch {
+            memoDao.insert(Memo(
+                name=name,
+                folderId=folderId,
+                filePath=filePath,
+                // transcript = transcript
+            ))
+            _memos.value = memoDao.getMemosByFolderId(folderId)
+            _uiState.update { it.copy(memos = _memos.value) }
+
+        }
+
     }
 }
