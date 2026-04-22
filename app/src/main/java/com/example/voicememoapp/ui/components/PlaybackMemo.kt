@@ -1,6 +1,7 @@
 package com.example.voicememoapp.ui.components
 
 import android.media.MediaPlayer
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,35 +23,45 @@ import androidx.compose.ui.Modifier
 import com.example.voicememoapp.data.Memo
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+
 
 @Composable
 fun PlaybackMemo(memo: Memo, modifier: Modifier = Modifier) {
     var isPlaying by rememberSaveable { mutableStateOf(false) }
-    val mediaPlayer = MediaPlayer()
+    val mediaPlayer = remember { MediaPlayer() }
 
-    if (isPlaying) {
-        mediaPlayer.apply {
-            setDataSource(memo.filePath)
-            prepare()
-            start()
-        }
-    }
-
-    if (!isPlaying) {
-        if (mediaPlayer.isPlaying) {
-            mediaPlayer.pause()
-        }
-    }
-
-    Column(modifier = Modifier.fillMaxWidth().padding(4.dp) ) {
+    Column(modifier = Modifier.fillMaxWidth().padding(4.dp)) {
         Card(modifier = Modifier.fillMaxWidth()) {
-            Row(modifier = Modifier.fillMaxWidth().padding(8.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { isPlaying = !isPlaying }) {
+                IconButton(onClick = {
+                    isPlaying = !isPlaying
+                    if (isPlaying) {
+                        Log.d("Playback", "Attempting to play: ${memo.filePath}")
+                        val file = java.io.File(memo.filePath)
+                        Log.d("Playback", "File exists: ${file.exists()}, size: ${file.length()}")
+                        mediaPlayer.reset()
+                        mediaPlayer.setAudioAttributes(
+                            android.media.AudioAttributes.Builder()
+                                .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                                .build()
+                        )
+                        mediaPlayer.setDataSource(memo.filePath)
+                        mediaPlayer.prepare()
+                        Log.d("Playback", "MediaPlayer prepared, starting...")
+                        mediaPlayer.start()
+                        Log.d("Playback", "MediaPlayer started, isPlaying: ${mediaPlayer.isPlaying}")
+                    } else {
+                        if (mediaPlayer.isPlaying) mediaPlayer.pause()
+                    }
+                }) {
                     AnimatedContent(targetState = isPlaying) { playing ->
                         if (playing) {
                             Icon(Icons.Filled.Pause, contentDescription = "Pause")
@@ -65,3 +76,43 @@ fun PlaybackMemo(memo: Memo, modifier: Modifier = Modifier) {
         }
     }
 }
+//@Composable
+//fun PlaybackMemo(memo: Memo, modifier: Modifier = Modifier) {
+//    var isPlaying by rememberSaveable { mutableStateOf(false) }
+//    val mediaPlayer = MediaPlayer()
+//
+//    if (isPlaying) {
+//        mediaPlayer.apply {
+//            setDataSource(memo.filePath)
+//            prepare()
+//            start()
+//        }
+//    }
+//
+//    if (!isPlaying) {
+//        if (mediaPlayer.isPlaying) {
+//            mediaPlayer.pause()
+//        }
+//    }
+//
+//    Column(modifier = Modifier.fillMaxWidth().padding(4.dp) ) {
+//        Card(modifier = Modifier.fillMaxWidth()) {
+//            Row(modifier = Modifier.fillMaxWidth().padding(8.dp),
+//                horizontalArrangement = Arrangement.SpaceBetween,
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                IconButton(onClick = { isPlaying = !isPlaying }) {
+//                    AnimatedContent(targetState = isPlaying) { playing ->
+//                        if (playing) {
+//                            Icon(Icons.Filled.Pause, contentDescription = "Pause")
+//                        } else {
+//                            Icon(Icons.Filled.PlayArrow, contentDescription = "Play")
+//                        }
+//                    }
+//                }
+//                Text(memo.name)
+//                Spacer(modifier = Modifier.weight(1f))
+//            }
+//        }
+//    }
+//}
