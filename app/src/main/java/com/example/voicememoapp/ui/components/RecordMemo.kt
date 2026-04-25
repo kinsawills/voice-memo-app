@@ -52,14 +52,12 @@ fun RecordMemoButton(modifier: Modifier, viewModel: MemoViewModel) {
                     setOutputFile(outputFile)
                     prepare()
                     start()
-                    Log.d("RecordMemo", "Recording started, file: $outputFile")
                 }
 
             }else{
                 mediaRecorder?.apply {
                     stop()
                     val file = java.io.File(outputFile)
-                    Log.d("RecordMemo", "File exists: ${file.exists()}, size: ${file.length()} bytes")
                     release()
                 }
                 mediaRecorder = null
@@ -70,7 +68,6 @@ fun RecordMemoButton(modifier: Modifier, viewModel: MemoViewModel) {
                     filePath = outputFile
                 )
 
-                Log.d("RecordMemo", "Saved to: $outputFile")
             }
                   },
         containerColor = Color.Red,
