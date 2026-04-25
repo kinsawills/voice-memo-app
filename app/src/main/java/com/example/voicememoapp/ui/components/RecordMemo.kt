@@ -1,5 +1,6 @@
 package com.example.voicememoapp.ui.components
 
+import android.R.attr.text
 import android.media.MediaRecorder
 import android.os.Build
 import android.util.Log
@@ -24,10 +25,36 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.voicememoapp.ui.MemoViewModel
+import com.example.voicememoapp.BuildConfig
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+//import com.google.ai.client.generativeai.BuildConfig
 import java.util.UUID
-
 /** The button for recording memos **/
 
+val apiKey = BuildConfig.MY_API_KEY
+
+suspend fun transcribeAudio(file: File, apiKey: String): String {
+    val model = GenerativeModel(
+        modelName = "gemini-3.1-flash-lite-preview",
+        apiKey = apiKey
+    )
+
+    val audioBytes = file.readBytes()
+
+    val response = model.generateContent(
+        content {
+            blob("audio/mp4", audioBytes)
+            text("transcribe this audio recording. Return only the transcription text.")
+        }
+    )
+
+    return response.text ?: "Transcription failed"
+}
 @Composable
 fun RecordMemoButton(modifier: Modifier, viewModel: MemoViewModel) {
     var isRecording by remember { mutableStateOf(false) }
@@ -62,10 +89,17 @@ fun RecordMemoButton(modifier: Modifier, viewModel: MemoViewModel) {
                 }
                 mediaRecorder = null
 
+                val file = File(outputFile)
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    val transcription = transcribeAudio(file, apiKey)
+                    Log.d("Transcription", transcription)
+                }
                 viewModel.addMemoToDB(
                     name = UUID.randomUUID().toString().take(6),
                     folderId = viewModel.uiState.value.currentSelectedFolder?.id ?: -1,
                     filePath = outputFile
+
                 )
 
             }

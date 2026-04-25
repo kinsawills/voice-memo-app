@@ -1,9 +1,17 @@
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
 }
+
 
 android {
     namespace = "com.example.voicememoapp"
@@ -26,6 +34,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "MY_API_KEY", "\"${localProperties["MY_API_KEY"]}\"")
+        }
+        debug {
+            buildConfigField("String", "MY_API_KEY", "\"${localProperties["MY_API_KEY"]}\"")
         }
     }
     compileOptions {
@@ -34,6 +46,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -66,3 +79,4 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:2.59.2")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
 }
+
