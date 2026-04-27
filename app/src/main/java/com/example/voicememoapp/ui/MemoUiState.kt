@@ -11,7 +11,13 @@ data class MemoUiState(
     val currentSelectedFolder: Folder? = null,
     val isShowingHomepage: Boolean = true,
     val isRecording: Boolean = false,
-    val isTranscribing: Boolean = false
+    val isTranscribing: Boolean = false,
+    val pendingMemo: PendingMemo? = null
     ) {
     val currentFolderMemos: List<Memo> by lazy { memos.filter { memo -> memo.folderId == (currentSelectedFolder?.id ?: -1)   } }
 }
+data class PendingMemo(
+    val filePath: String,
+    val folderId: Int,
+    val transcription: String
+)

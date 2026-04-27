@@ -160,7 +160,6 @@ class MemoViewModel @Inject constructor(
         mediaRecorder = null
         val file = File(outputFile)
         val folderId = uiState.value.currentSelectedFolder?.id ?: -1
-        val name = UUID.randomUUID().toString().take(6)
         val path = outputFile
 
         _uiState.update { it.copy(isRecording = false) }
@@ -169,9 +168,37 @@ class MemoViewModel @Inject constructor(
             _uiState.update { it.copy(isTranscribing = true) }
             val transcription = transcribeAudio(file, apiKey)
             Log.d("Transcription", transcription)
-            addMemoToDB(name = name, folderId = folderId, filePath = path, transcript = transcription)
-            _uiState.update { it.copy(isTranscribing = false) }
+            // Instead of saving immediately, store as pending and show dialog
+            _uiState.update {
+                it.copy(
+                    isTranscribing = false,
+                    pendingMemo = PendingMemo(
+                        filePath = path,
+                        folderId = folderId,
+                        transcription = transcription
+                    )
+                )
+            }
         }
+    }
+
+    fun saveMemoWithName(name: String) {
+        val pending = uiState.value.pendingMemo ?: return
+        val finalName = name.ifBlank { UUID.randomUUID().toString().take(6) }
+        viewModelScope.launch {
+            addMemoToDB(
+                name = finalName,
+                folderId = pending.folderId,
+                filePath = pending.filePath,
+                transcript = pending.transcription
+            )
+            _uiState.update { it.copy(pendingMemo = null) }
+        }
+    }
+
+    fun dismissNamingDialog() {
+        // Discard the pending memo entirely, or you could still save it with a generated name
+        _uiState.update { it.copy(pendingMemo = null) }
     }
 
     override fun onCleared() {
