@@ -38,7 +38,7 @@ fun MemoFolderContentScreen(
     val filteredFolderNames = if (searchQuery.isBlank()) emptyList() else folderNames.filter { it.contains(searchQuery, ignoreCase = true) }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         BackHandler {

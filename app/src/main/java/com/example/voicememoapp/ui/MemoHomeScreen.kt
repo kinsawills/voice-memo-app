@@ -49,7 +49,7 @@ fun MemoHomeScreen(
     var folderDialogOpen by rememberSaveable { mutableStateOf(false)}
     if(uiState.isShowingHomepage) {
       Column(
-          modifier = Modifier.fillMaxSize(),
+          modifier = Modifier.fillMaxSize().padding(4.dp),
           horizontalAlignment = Alignment.CenterHorizontally
       ) {
           SimpleSearchBar(

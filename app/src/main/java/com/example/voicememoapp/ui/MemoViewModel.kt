@@ -1,5 +1,8 @@
 package com.example.voicememoapp.ui
 
+import android.content.Context
+import android.media.MediaRecorder
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.voicememoapp.data.Folder
@@ -7,18 +10,24 @@ import com.example.voicememoapp.data.FolderDao
 import com.example.voicememoapp.data.Memo
 import com.example.voicememoapp.data.MemoDao
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class MemoViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val folderDao: FolderDao,
     private val memoDao: MemoDao
 ) : ViewModel() {
+
+    private var mediaRecorder: MediaRecorder? = null
+    private var outputFile: String = ""
     private val _folders = MutableStateFlow<List<Folder>>(arrayListOf())
     val folders get() = _folders.asStateFlow().value
 
@@ -104,5 +113,43 @@ class MemoViewModel @Inject constructor(
 
         }
 
+    }
+
+    fun startRecording() {
+        outputFile = "${context.externalCacheDir?.absolutePath}/memo_${System.currentTimeMillis()}.mp3"
+        mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MediaRecorder(context)
+        } else {
+            @Suppress("DEPRECATION")
+            MediaRecorder()
+        }.apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setOutputFile(outputFile)
+            prepare()
+            start()
+        }
+        _uiState.update { it.copy(isRecording = true) }
+    }
+
+    fun stopRecording() {
+        mediaRecorder?.apply {
+            stop()
+            release()
+        }
+        mediaRecorder = null
+        _uiState.update { it.copy(isRecording = false) }
+        addMemoToDB(
+            name = UUID.randomUUID().toString().take(6),
+            folderId = uiState.value.currentSelectedFolder?.id ?: -1,
+            filePath = outputFile
+        )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mediaRecorder?.release()
+        mediaRecorder = null
     }
 }
