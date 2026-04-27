@@ -28,6 +28,9 @@ interface MemoDao {
     @Query("SELECT * FROM memo")
     suspend fun getAllMemos(): List<Memo>
 
+    @Query(value="UPDATE memo SET transcription = :transcription WHERE id= :id")
+    suspend fun updateTranscription(transcription: String, id: Int): Unit
+
     @Query("SELECT * FROM memo WHERE folderId = :folderId")
     suspend fun getMemosByFolderId(folderId: Int): List<Memo>
 

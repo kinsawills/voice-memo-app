@@ -10,7 +10,8 @@ data class MemoUiState(
     val memos: List<Memo>,
     val currentSelectedFolder: Folder? = null,
     val isShowingHomepage: Boolean = true,
-    val isRecording: Boolean = false
+    val isRecording: Boolean = false,
+    val isTranscribing: Boolean = false
     ) {
     val currentFolderMemos: List<Memo> by lazy { memos.filter { memo -> memo.folderId == (currentSelectedFolder?.id ?: -1)   } }
 }

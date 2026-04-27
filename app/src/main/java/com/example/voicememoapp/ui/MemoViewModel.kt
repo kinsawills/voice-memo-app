@@ -1,14 +1,19 @@
 package com.example.voicememoapp.ui
 
+import com.google.ai.client.generativeai.type.content
+import kotlinx.coroutines.Dispatchers
 import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.voicememoapp.data.Folder
 import com.example.voicememoapp.data.FolderDao
 import com.example.voicememoapp.data.Memo
 import com.example.voicememoapp.data.MemoDao
+import com.example.voicememoapp.BuildConfig
+import com.google.ai.client.generativeai.GenerativeModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
@@ -25,7 +31,7 @@ class MemoViewModel @Inject constructor(
     private val folderDao: FolderDao,
     private val memoDao: MemoDao
 ) : ViewModel() {
-
+    val apiKey = BuildConfig.MY_API_KEY
     private var mediaRecorder: MediaRecorder? = null
     private var outputFile: String = ""
     private val _folders = MutableStateFlow<List<Folder>>(arrayListOf())
@@ -95,24 +101,37 @@ class MemoViewModel @Inject constructor(
         }
     }
 
-    fun generateTranscript(content: Int) {
+    suspend fun transcribeAudio(file: File, apiKey: String): String {
+        val model = GenerativeModel(
+            modelName = "gemini-3.1-flash-lite-preview",
+            apiKey = apiKey
+        )
 
+        val audioBytes = file.readBytes()
+
+        return try {
+            val response = model.generateContent(
+                content {
+                    blob("audio/mp4", audioBytes)
+                    text("transcribe this audio recording. Return only the transcription text.")
+                }
+            )
+            response.text ?: "Transcription failed"
+        } catch (e: Exception) {
+            Log.e("Transcription", "Failed to transcribe audio", e)
+            "Transcription unavailable"
+        }
     }
 
-    fun addMemoToDB(name: String, folderId: Int, filePath: String) {
-        // Generate the transcript here and save the memo to the database with it attached
-        viewModelScope.launch {
-            memoDao.insert(Memo(
-                name=name,
-                folderId=folderId,
-                filePath=filePath,
-                // transcript = transcript
-            ))
-            _memos.value = memoDao.getMemosByFolderId(folderId)
-            _uiState.update { it.copy(memos = _memos.value) }
-
-        }
-
+    suspend fun addMemoToDB(name: String, folderId: Int, filePath: String, transcript: String = "") {
+        memoDao.insert(Memo(
+            name = name,
+            folderId = folderId,
+            filePath = filePath,
+            transcription = transcript
+        ))
+        _memos.value = memoDao.getMemosByFolderId(folderId)
+        _uiState.update { it.copy(memos = _memos.value) }
     }
 
     fun startRecording() {
@@ -139,12 +158,20 @@ class MemoViewModel @Inject constructor(
             release()
         }
         mediaRecorder = null
+        val file = File(outputFile)
+        val folderId = uiState.value.currentSelectedFolder?.id ?: -1
+        val name = UUID.randomUUID().toString().take(6)
+        val path = outputFile
+
         _uiState.update { it.copy(isRecording = false) }
-        addMemoToDB(
-            name = UUID.randomUUID().toString().take(6),
-            folderId = uiState.value.currentSelectedFolder?.id ?: -1,
-            filePath = outputFile
-        )
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isTranscribing = true) }
+            val transcription = transcribeAudio(file, apiKey)
+            Log.d("Transcription", transcription)
+            addMemoToDB(name = name, folderId = folderId, filePath = path, transcript = transcription)
+            _uiState.update { it.copy(isTranscribing = false) }
+        }
     }
 
     override fun onCleared() {
